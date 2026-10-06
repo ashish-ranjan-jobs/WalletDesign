@@ -1,0 +1,1240 @@
+{
+  "info": {
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Wallet Service",
+    "description": "REST APIs for wallet management, top-up, withdraw, transfer, and transaction history.\n\nBase path: {{baseUrl}}/api\n\nSuggested flow:\n1. Create User A\n2. Create User B\n3. Top Up A\n4. Transfer A → B\n5. Withdraw from B\n6. Get balances\n7. Fetch txn history",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "walletId",
+      "value": "1"
+    },
+    {
+      "key": "walletId2",
+      "value": "2"
+    },
+    {
+      "key": "userId",
+      "value": "1"
+    },
+    {
+      "key": "userId2",
+      "value": "2"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Users",
+      "item": [
+        {
+          "name": "Create User A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.walletId) {",
+                  "    pm.collectionVariables.set('walletId', json.walletId);",
+                  "}",
+                  "if (json.userId) {",
+                  "    pm.collectionVariables.set('userId', json.userId);",
+                  "}",
+                  "pm.test('walletId present', function () {",
+                  "    pm.expect(json.walletId).to.be.ok;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Sharma\",\n  \"email\": \"alice@example.com\",\n  \"phone\": \"9876543210\",\n  \"address\": \"Bangalore\",\n  \"maxBalance\": 50000.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/create_user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "create_user"]
+            },
+            "description": "Creates a user and their 1:1 wallet. Saves `walletId` / `userId` into collection variables."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Alice Sharma\",\n  \"email\": \"alice@example.com\",\n  \"phone\": \"9876543210\",\n  \"address\": \"Bangalore\",\n  \"maxBalance\": 50000.00\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/create_user",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "create_user"]
+                }
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"userId\": 1,\n  \"walletId\": 1,\n  \"message\": \"User and wallet created successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create User B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const json = pm.response.json();",
+                  "if (json.walletId) {",
+                  "    pm.collectionVariables.set('walletId2', json.walletId);",
+                  "}",
+                  "if (json.userId) {",
+                  "    pm.collectionVariables.set('userId2', json.userId);",
+                  "}",
+                  "pm.test('walletId present', function () {",
+                  "    pm.expect(json.walletId).to.be.ok;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bob Verma\",\n  \"email\": \"bob@example.com\",\n  \"phone\": \"9123456780\",\n  \"address\": \"Mumbai\",\n  \"maxBalance\": 100000.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/create_user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "create_user"]
+            },
+            "description": "Creates second user/wallet. Saves `walletId2` / `userId2`."
+          },
+          "response": []
+        },
+        {
+          "name": "Create User - Duplicate Email (409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 409', function () {",
+                  "    pm.response.to.have.status(409);",
+                  "});",
+                  "pm.test('Error code USER_ALREADY_REGISTERED', function () {",
+                  "    pm.expect(pm.response.json().errorCode).to.eql('USER_ALREADY_REGISTERED');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Again\",\n  \"email\": \"alice@example.com\",\n  \"phone\": \"0000000000\",\n  \"address\": \"Delhi\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/create_user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "create_user"]
+            },
+            "description": "Expects 409 USER_ALREADY_REGISTERED when email already exists."
+          },
+          "response": []
+        },
+        {
+          "name": "Create User - Validation Error (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('Error code VALIDATION_ERROR', function () {",
+                  "    pm.expect(pm.response.json().errorCode).to.eql('VALIDATION_ERROR');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"\",\n  \"email\": \"not-an-email\",\n  \"phone\": \"111\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/create_user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "create_user"]
+            },
+            "description": "Missing/invalid fields → 400 VALIDATION_ERROR."
+          },
+          "response": []
+        }
+      ],
+      "description": "User + wallet creation endpoints"
+    },
+    {
+      "name": "2. Wallet Balance",
+      "item": [
+        {
+          "name": "Get Wallet Balance A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "const json = pm.response.json();",
+                  "pm.test('Has amount and maxAmount', function () {",
+                  "    pm.expect(json).to.have.property('amount');",
+                  "    pm.expect(json).to.have.property('maxAmount');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet_balance/{{walletId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet_balance", "{{walletId}}"]
+            },
+            "description": "GET /api/wallet_balance/{walletId}"
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/wallet_balance/1",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "wallet_balance", "1"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                }
+              ],
+              "body": "{\n  \"walletId\": 1,\n  \"amount\": 5000.00,\n  \"maxAmount\": 50000.00\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Wallet Balance B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet_balance/{{walletId2}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet_balance", "{{walletId2}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Wallet Balance - Not Found (404)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 404', function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "pm.test('Error code WALLET_NOT_FOUND', function () {",
+                  "    pm.expect(pm.response.json().errorCode).to.eql('WALLET_NOT_FOUND');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet_balance/999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet_balance", "999999"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Top Up",
+      "item": [
+        {
+          "name": "Top Up Wallet A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Success true', function () {",
+                  "    pm.expect(pm.response.json().success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletId\": {{walletId}},\n  \"amount\": 5000.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/top_up",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "top_up"]
+            },
+            "description": "Credits wallet from external source. Enforces maxBalance."
+          },
+          "response": [
+            {
+              "name": "200 Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"walletId\": 1,\n  \"amount\": 5000.00\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/top_up",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "top_up"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"walletId\": 1,\n  \"amount\": 5000.00,\n  \"balance\": 5000.00,\n  \"maxAmount\": 50000.00,\n  \"transactionId\": 1,\n  \"message\": \"Success\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Top Up Wallet B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletId\": {{walletId2}},\n  \"amount\": 2000.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/top_up",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "top_up"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Top Up - Exceed Max Balance (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('MAX_BALANCE_EXCEEDED or PAYMENT_FAILED', function () {",
+                  "    const code = pm.response.json().errorCode;",
+                  "    pm.expect(['MAX_BALANCE_EXCEEDED', 'PAYMENT_FAILED']).to.include(code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletId\": {{walletId}},\n  \"amount\": 999999999.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/top_up",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "top_up"]
+            },
+            "description": "Amount that would push balance over maxBalance."
+          },
+          "response": []
+        },
+        {
+          "name": "Top Up - Invalid Amount (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletId\": {{walletId}},\n  \"amount\": -10\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/top_up",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "top_up"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Withdraw",
+      "item": [
+        {
+          "name": "Withdraw from Wallet A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Success true', function () {",
+                  "    pm.expect(pm.response.json().success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletId\": {{walletId}},\n  \"externalId\": \"BANK-ACC-ALICE-001\",\n  \"amount\": 500.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/withdraw",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "withdraw"]
+            },
+            "description": "Debits wallet toward external destination. `externalId` is optional reference."
+          },
+          "response": [
+            {
+              "name": "200 Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"walletId\": 1,\n  \"externalId\": \"BANK-ACC-ALICE-001\",\n  \"amount\": 500.00\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/withdraw",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "withdraw"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"walletId\": 1,\n  \"amount\": 500.00,\n  \"balance\": 4500.00,\n  \"maxAmount\": 50000.00,\n  \"transactionId\": 2,\n  \"message\": \"Success\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Withdraw - Insufficient Balance (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('INSUFFICIENT_BALANCE or PAYMENT_FAILED', function () {",
+                  "    const code = pm.response.json().errorCode;",
+                  "    pm.expect(['INSUFFICIENT_BALANCE', 'PAYMENT_FAILED']).to.include(code);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletId\": {{walletId}},\n  \"externalId\": \"BANK-ACC-X\",\n  \"amount\": 999999999.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/withdraw",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "withdraw"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Transfer",
+      "item": [
+        {
+          "name": "Transfer A → B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Success true', function () {",
+                  "    pm.expect(pm.response.json().success).to.eql(true);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromId\": {{walletId}},\n  \"toId\": {{walletId2}},\n  \"amount\": 1200.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transfer"]
+            },
+            "description": "Transfers funds between wallets. Uses ordered pessimistic locks to avoid deadlocks."
+          },
+          "response": [
+            {
+              "name": "200 Success",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fromId\": 1,\n  \"toId\": 2,\n  \"amount\": 1200.00\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/transfer",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api", "transfer"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "body": "{\n  \"success\": true,\n  \"fromId\": 1,\n  \"toId\": 2,\n  \"amount\": 1200.00,\n  \"fromBalance\": 3300.00,\n  \"toBalance\": 3200.00,\n  \"transactionId\": 3,\n  \"message\": \"Success\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Transfer B → A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromId\": {{walletId2}},\n  \"toId\": {{walletId}},\n  \"amount\": 100.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transfer"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transfer - Same Wallet (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test('INVALID_TRANSFER', function () {",
+                  "    pm.expect(pm.response.json().errorCode).to.eql('INVALID_TRANSFER');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromId\": {{walletId}},\n  \"toId\": {{walletId}},\n  \"amount\": 50.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transfer"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Transfer - Insufficient Balance (400)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 400', function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromId\": {{walletId}},\n  \"toId\": {{walletId2}},\n  \"amount\": 999999999.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transfer"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Transaction History",
+      "item": [
+        {
+          "name": "Txn Details - All for Wallet A",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test('Success true', function () {",
+                  "    pm.expect(pm.response.json().success).to.eql(true);",
+                  "});",
+                  "pm.test('Has transactions array', function () {",
+                  "    pm.expect(pm.response.json().transactions).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/txn_details?walletId={{walletId}}&page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "txn_details"],
+              "query": [
+                {
+                  "key": "walletId",
+                  "value": "{{walletId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Paginated history for a wallet (as fromId, toId, or owning wallet)."
+          },
+          "response": []
+        },
+        {
+          "name": "Txn Details - Filter by TOP_UP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status is 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/txn_details?walletId={{walletId}}&txnType=TOP_UP&page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "txn_details"],
+              "query": [
+                {
+                  "key": "walletId",
+                  "value": "{{walletId}}"
+                },
+                {
+                  "key": "txnType",
+                  "value": "TOP_UP",
+                  "description": "WITHDRAW | TOP_UP | TRANSFER"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Txn Details - Filter by TRANSFER",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/txn_details?walletId={{walletId}}&txnType=TRANSFER&page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "txn_details"],
+              "query": [
+                {
+                  "key": "walletId",
+                  "value": "{{walletId}}"
+                },
+                {
+                  "key": "txnType",
+                  "value": "TRANSFER"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Txn Details - Filter by WITHDRAW",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/txn_details?walletId={{walletId}}&txnType=WITHDRAW&page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "txn_details"],
+              "query": [
+                {
+                  "key": "walletId",
+                  "value": "{{walletId}}"
+                },
+                {
+                  "key": "txnType",
+                  "value": "WITHDRAW"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Txn Details - Date Range",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/txn_details?walletId={{walletId}}&startDate=2024-01-01T00:00:00Z&endDate=2030-12-31T23:59:59Z&page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "txn_details"],
+              "query": [
+                {
+                  "key": "walletId",
+                  "value": "{{walletId}}"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01T00:00:00Z",
+                  "description": "ISO-8601 Instant"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2030-12-31T23:59:59Z",
+                  "description": "ISO-8601 Instant"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Filter by created_at range (ISO-8601)."
+          },
+          "response": []
+        },
+        {
+          "name": "Txn Details - All Wallets (no walletId)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/txn_details?page=0&size=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "txn_details"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "Returns global paginated history when walletId is omitted."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Happy Path Runner",
+      "item": [
+        {
+          "name": "01 Create Alice",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.walletId) pm.collectionVariables.set('walletId', json.walletId);",
+                  "if (json.userId) pm.collectionVariables.set('userId', json.userId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Alice Runner\",\n  \"email\": \"alice.runner.{{$timestamp}}@example.com\",\n  \"phone\": \"9000000001\",\n  \"address\": \"BLR\",\n  \"maxBalance\": 50000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/create_user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "create_user"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "02 Create Bob",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const json = pm.response.json();",
+                  "if (json.walletId) pm.collectionVariables.set('walletId2', json.walletId);",
+                  "if (json.userId) pm.collectionVariables.set('userId2', json.userId);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Bob Runner\",\n  \"email\": \"bob.runner.{{$timestamp}}@example.com\",\n  \"phone\": \"9000000002\",\n  \"address\": \"MUM\",\n  \"maxBalance\": 100000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/create_user",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "create_user"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "03 Top Up Alice",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletId\": {{walletId}},\n  \"amount\": 5000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/top_up",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "top_up"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "04 Transfer Alice to Bob",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fromId\": {{walletId}},\n  \"toId\": {{walletId2}},\n  \"amount\": 1500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "transfer"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "05 Withdraw Bob",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"walletId\": {{walletId2}},\n  \"externalId\": \"BANK-BOB-99\",\n  \"amount\": 200\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/withdraw",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "withdraw"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "06 Balance Alice",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet_balance/{{walletId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet_balance", "{{walletId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "07 Balance Bob",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/wallet_balance/{{walletId2}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "wallet_balance", "{{walletId2}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "08 Txn History Alice",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/txn_details?walletId={{walletId}}&page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "txn_details"],
+              "query": [
+                {
+                  "key": "walletId",
+                  "value": "{{walletId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "description": "Run this folder with Collection Runner in order. Uses unique emails via {{$timestamp}}."
+    }
+  ]
+}
